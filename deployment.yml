@@ -16,6 +16,14 @@ spec:
     spec:
       containers:
         - name: bms-container
-          image: gowthamcloud268/bms:latest # Replace with your Docker image
+          image: gowthamcloud268/bms:latest
+          imagePullPolicy: Always
           ports:
-            - containerPort: 3000 # Replace with the port your app runs on
+            - containerPort: 3000
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
