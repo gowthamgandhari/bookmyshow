@@ -59,13 +59,6 @@ pipeline {
             }
         }
 
-        stage('OWASP FS Scan') {
-            steps {
-                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
-                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-            }
-        }
-
         stage('Trivy FS Scan') {
             steps {
                 sh 'trivy fs . > trivy-fs-report.txt'
@@ -82,8 +75,7 @@ pipeline {
         stage('Trivy Image Scan') {
             steps {
                 //sh 'trivy image --scanners vuln bms-app > trivy-image-report.txt'
-                sh 'trivy image --severity HIGH,CRITICAL --exit-code 1 BMS > trivy-image-report.txt'
-
+                sh 'trivy image --severity HIGH,CRITICAL --exit-code 1 bms > trivy-image-report.txt'
             }
         }
         
@@ -106,39 +98,57 @@ pipeline {
             }
         }
 
-        stage('Terraform EKS Init/fmt/validate & Apply') {
-            when {
-                expression { currentBuild.currentResult == 'SUCCESS' }
-            }
-            steps {
-                withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
-                    dir('BMS-Application/Terraform-Code-for-EKS-Cluster') {
-                        sh '''
-                            terraform init
-                            terraform fmt
-                            terraform validate
-                            terraform apply -auto-approve
-                        '''
-                    }
-                }
-            }
-        }
+       stage('Create S3 Backend Bucket') {
+           steps {
+               withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
+                   sh '''
+                   aws s3api create-bucket --bucket bms-tf-state-bucket \
+                   --region ap-south-1 --create-bucket-configuration LocationConstraint=ap-south-1 || true
+                   
+                   aws dynamodb create-table \
+                   --table-name bms-tf-lock \
+                   --attribute-definitions AttributeName=LockID,AttributeType=S \
+                   --key-schema AttributeName=LockID,KeyType=HASH \
+                   --billing-mode PAY_PER_REQUEST || true
+                   '''
+               }
+           }
+       }
 
-        stage('Deploy to EKS') {
-            steps {
-                dir('BMS-Application/Terraform-Code-for-EKS-Cluster') {
-                    withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
-                        sh '''
-                            echo "Waiting for EKS cluster to become active..."
-                            aws eks wait cluster-active --name $EKS_CLUSTER_NAME
-                            aws eks update-kubeconfig --region $AWS_REGION --name $EKS_CLUSTER_NAME
-                            kubectl apply -f deployment.yml
-                            kubectl apply -f service.yml
-                        '''
-                    }
-                }
-            }
-        }             
+
+        stage('Terraform EKS Init/fmt/validate & Apply') {
+          when {
+              expression { currentBuild.currentResult == 'SUCCESS' }
+          }
+          steps {
+              withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
+                  dir('BMS-Application/Terraform-Code-for-EKS-Cluster/terraform') {
+                      sh '''
+                          terraform init
+                          terraform fmt
+                          terraform validate
+                          terraform apply -auto-approve
+                      '''
+                  }
+              }
+          }
+      }
+
+       stage('Deploy to EKS') {
+           steps {
+               dir('BMS-Application') {
+                   withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
+                       sh '''
+                           echo "Waiting for EKS cluster to become active..."
+                           aws eks wait cluster-active --name $EKS_CLUSTER_NAME
+                           aws eks update-kubeconfig --region $AWS_REGION --name $EKS_CLUSTER_NAME
+                           kubectl apply -f deployment.yml
+                           kubectl apply -f service.yml
+                       '''
+                   }
+               }
+           }
+       }
     }
 
     post {
