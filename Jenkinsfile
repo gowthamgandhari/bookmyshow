@@ -23,12 +23,11 @@ pipeline {
     
         stage('Checkout from Git') {
             steps {
-                git branch: 'main', url: 'https://github.com/gowthamgandhari/bookmyshow.git'
-                sh 'ls -R'   // list the directories 
-                sh 'ls -la'  // Verify files after checkout
+                checkout scm
+                sh 'ls -R'
+                sh 'ls -la'
             }
         }
-
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonar-server') {
