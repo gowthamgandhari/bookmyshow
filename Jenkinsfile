@@ -68,6 +68,8 @@ pipeline {
         stage('Docker Build') {
             steps {
                 dir('bookmyshow-app') {
+                    sh 'pwd'
+                    sh 'ls -la'
                     sh 'docker build -t bms .'
                 }
             }
