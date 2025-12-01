@@ -135,6 +135,7 @@ pipeline {
             }
             steps {
                 withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
+                    git branch: 'main', url: 'https://github.com/gowthamgandhari/bookmyshow.git'
                     dir('BMS-Application/Terraform-Code-for-EKS-Cluster/terraform') {
                         sh """
                             sh 'ls -la'
