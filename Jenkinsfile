@@ -107,7 +107,7 @@ pipeline {
             }
         }
 
-       stage('Create S3 Backend Bucket') {
+        stage('Create S3 Backend Bucket') {
            steps {
                withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
                    sh '''
@@ -143,7 +143,7 @@ pipeline {
           }
       }
 
-       stage('Deploy to EKS') {
+        stage('Deploy to EKS') {
            steps {
                dir('BMS-Application') {
                    withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
