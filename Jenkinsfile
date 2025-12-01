@@ -77,7 +77,7 @@ pipeline {
                 dir('bookmyshow-app'){
                     sh 'pwd'
                     sh 'ls -la'
-                    sh 'docker build -t bms .'
+                    sh 'docker build -t bms -f Dockerfile .'
                 }
             }
         }
