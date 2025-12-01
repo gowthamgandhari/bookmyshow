@@ -73,11 +73,11 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                checkout scm
                 dir('bookmyshow-app'){
                     sh 'pwd'
                     sh 'ls -la'
-                    sh 'docker build -t bms -f Dockerfile .'
+                    sh 'docker build -t bms -f $WORKSPACE/bookmyshow-app/Dockerfile $WORKSPACE/bookmyshow-app'
+                    // sh 'docker build -t bms -f Dockerfile .'
                 }
             }
         }
