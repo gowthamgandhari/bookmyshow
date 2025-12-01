@@ -153,14 +153,26 @@ pipeline {
     }
 
     post {
-        always {
-            emailext attachLog: true,
-                subject: "'${currentBuild.result}'",
-                body: "Project: ${env.JOB_NAME}<br/>" +
-                      "Build Number: ${env.BUILD_NUMBER}<br/>" +
-                      "URL: ${env.BUILD_URL}<br/>",
-                to: 'gowthameswar88@gmail.com',
-                attachmentsPattern: 'trivy-fs-report.txt'
-        }
+    success {
+        emailext attachLog: true,
+            subject: "SUCCESS: ${env.JOB_NAME}",
+            body: "Build SUCCESS 🎯<br/>" +
+                  "Project: ${env.JOB_NAME}<br/>" +
+                  "Build Number: ${env.BUILD_NUMBER}<br/>" +
+                  "URL: ${env.BUILD_URL}<br/>",
+            to: 'gowthameswar88@gmail.com',
+            attachmentsPattern: 'trivy-fs-report.txt'
+    }
+
+    failure {
+        emailext attachLog: true,
+            subject: "FAILED: ${env.JOB_NAME}",
+            body: "Build FAILED ❌<br/>" +
+                  "Project: ${env.JOB_NAME}<br/>" +
+                  "Build Number: ${env.BUILD_NUMBER}<br/>" +
+                  "Check Logs: ${env.BUILD_URL}",
+            to: 'gowthameswar88@gmail.com',
+            attachmentsPattern: 'trivy-fs-report.txt'
+    }
     }
 }
