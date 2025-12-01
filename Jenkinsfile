@@ -83,7 +83,8 @@ pipeline {
         stage('Trivy Image Scan') {
             steps {
                 //sh 'trivy image --scanners vuln bms-app > trivy-image-report.txt'
-                sh 'trivy image --severity HIGH,CRITICAL --format json -o trivy-report.json bms'
+                 sh 'trivy image --severity HIGH,CRITICAL --exit-code 0 bms'
+                // sh 'trivy image --severity HIGH,CRITICAL --format json -o trivy-report.json bms'
             }
         }
         
