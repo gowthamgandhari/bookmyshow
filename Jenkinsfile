@@ -15,11 +15,11 @@ pipeline {
 
     stages {
 
-        //stage('Clean Workspace') {
-        //    steps {
-        //        cleanWs()
-        //    }
-        //}
+        stage('Clean Workspace') {
+            steps {
+                cleanWs()
+            }
+        }
     
         stage('Checkout from Git') {
             steps {
@@ -73,6 +73,7 @@ pipeline {
 
         stage('Docker Build') {
             steps {
+                checkout scm
                 dir('bookmyshow-app'){
                     sh 'pwd'
                     sh 'ls -la'
