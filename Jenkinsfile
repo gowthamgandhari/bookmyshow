@@ -23,7 +23,7 @@ pipeline {
     
         stage('Checkout from Git') {
             steps {
-                git branch: 'main', url: 'https://github.com/gowthamgandhari/bookmyshow'
+                git branch: 'main', url: 'https://github.com/gowthamgandhari/bookmyshow.git'
                 sh 'ls -R'   // list the directories 
                 sh 'ls -la'  // Verify files after checkout
             }
