@@ -120,6 +120,16 @@ pipeline {
            }
        }
 
+        stage('Debug Terraform Path') {
+            steps {
+                sh '''
+                    echo "Current directory: $(pwd)"
+                    ls -R BMS-Application/Terraform-Code-for-EKS-Cluster/terraform
+                '''
+            }
+        }
+
+
         stage('Terraform EKS Init/fmt/validate & Apply') {
             when {
                 expression { currentBuild.currentResult == 'SUCCESS' }
