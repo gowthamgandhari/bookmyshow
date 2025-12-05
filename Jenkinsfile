@@ -104,27 +104,44 @@ pipeline {
         }
 
         stage('Create S3 Backend Bucket') {
-           steps {
-               withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
-                   sh """
-                       aws s3api create-bucket --bucket bms-tf-state-bucket \
-                       --region ap-south-1 --create-bucket-configuration LocationConstraint=ap-south-1 || true
-
-                       aws dynamodb create-table \
-                       --table-name bms-tf-lock \
-                       --attribute-definitions AttributeName=LockID,AttributeType=S \
-                       --key-schema AttributeName=LockID,KeyType=HASH \
-                       --billing-mode PAY_PER_REQUEST || true
-                   """
-               }
-           }
-       }
+            steps {
+                withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
+        
+                    // Create S3 bucket only if it does NOT already exist
+                    sh """
+                        if aws s3api head-bucket --bucket bms-tf-state-bucket 2>/dev/null; then
+                            echo "S3 bucket already exists. Skipping creation."
+                        else
+                            echo "Creating S3 bucket..."
+                            aws s3api create-bucket \
+                                --bucket bms-tf-state-bucket \
+                                --region ap-south-1 \
+                                --create-bucket-configuration LocationConstraint=ap-south-1
+                        fi
+                    """
+        
+                    // Create DynamoDB table only if it does NOT already exist
+                    sh """
+                        if aws dynamodb describe-table --table-name bms-tf-lock 2>/dev/null; then
+                            echo "DynamoDB table already exists. Skipping creation."
+                        else
+                            echo "Creating DynamoDB table..."
+                            aws dynamodb create-table \
+                                --table-name bms-tf-lock \
+                                --attribute-definitions AttributeName=LockID,AttributeType=S \
+                                --key-schema AttributeName=LockID,KeyType=HASH \
+                                --billing-mode PAY_PER_REQUEST
+                        fi
+                    """
+                }
+            }
+        }
 
         stage('Debug Terraform Path') {
             steps {
                 sh '''
                     echo "Current directory: $(pwd)"
-                    ls -R BMS-Application/Terraform-Code-for-EKS-Cluster/terraform
+                    ls -R BMS-APPLICATION/Terraform-Code-for-EKS-Cluster/terraform
                 '''
             }
         }
@@ -135,7 +152,7 @@ pipeline {
             }
             steps {
                 withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
-                    dir('BMS-Application/Terraform-Code-for-EKS-Cluster/terraform') {
+                    dir('BMS-APPLICATION/Terraform-Code-for-EKS-Cluster/terraform') {
                         sh """
                             sh 'ls -la'
                             terraform init
@@ -150,7 +167,7 @@ pipeline {
 
         stage('Deploy to EKS') {
            steps {
-               dir('BMS-Application') {
+               dir('BMS-APPLICATION') {
                    withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
                        sh """
                            echo "Waiting for EKS cluster to become active..."
@@ -159,15 +176,14 @@ pipeline {
                            kubectl apply -f deployment.yml
                            kubectl apply -f service.yml
                        """
-                   }
-               }
-           }
-       }
+                    }
+                }
+            }
+        }
     }
 
     post {
         always {
-            // Email sent for every build (success, failure, unstable, aborted)
             emailext(
                 attachLog: true,
                 subject: "BUILD STATUS: ${currentBuild.currentResult} - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
@@ -176,6 +192,11 @@ pipeline {
                          <b>Status:</b> ${currentBuild.currentResult}<br/>
                          <b>URL:</b> ${env.BUILD_URL}""",
                 to: 'gowthameswar88@gmail.com',
+                recipientProviders: [
+                    [$class: 'DevelopersRecipientProvider'],
+                    [$class: 'RequesterRecipientProvider']
+                ],
+    
                 attachmentsPattern: 'trivy-fs-report.txt'
             )
         }
