@@ -141,7 +141,7 @@ pipeline {
             steps {
                 sh '''
                     echo "Current directory: $(pwd)"
-                    ls -R BMS-APPLICATION/Terraform-Code-for-EKS-Cluster/terraform
+                    ls -R Terraform-Code-for-EKS-Cluster/terraform
                 '''
             }
         }
@@ -152,7 +152,7 @@ pipeline {
             }
             steps {
                 withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
-                    dir('BMS-APPLICATION/Terraform-Code-for-EKS-Cluster/terraform') {
+                    dir('Terraform-Code-for-EKS-Cluster/terraform') {
                         sh """
                             sh 'ls -la'
                             terraform init
@@ -167,7 +167,7 @@ pipeline {
 
         stage('Deploy to EKS') {
            steps {
-               dir('BMS-APPLICATION') {
+               dir('Terraform-Code-for-EKS-Cluster/terraform') {
                    withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
                        sh """
                            echo "Waiting for EKS cluster to become active..."
