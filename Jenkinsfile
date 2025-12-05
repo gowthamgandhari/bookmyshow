@@ -192,11 +192,6 @@ pipeline {
                          <b>Status:</b> ${currentBuild.currentResult}<br/>
                          <b>URL:</b> ${env.BUILD_URL}""",
                 to: 'gowthameswar88@gmail.com',
-                recipientProviders: [
-                    [$class: 'DevelopersRecipientProvider'],
-                    [$class: 'RequesterRecipientProvider']
-                ],
-    
                 attachmentsPattern: 'trivy-fs-report.txt'
             )
         }
