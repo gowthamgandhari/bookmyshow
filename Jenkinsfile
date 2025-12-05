@@ -154,7 +154,7 @@ pipeline {
                 withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
                     dir('Terraform-Code-for-EKS-Cluster/terraform') {
                         sh """
-                            sh 'ls -la'
+                            ls -la
                             terraform init
                             terraform fmt
                             terraform validate
@@ -192,8 +192,11 @@ pipeline {
                          <b>Status:</b> ${currentBuild.currentResult}<br/>
                          <b>URL:</b> ${env.BUILD_URL}""",
                 to: 'gowthameswar88@gmail.com',
+                replyTo: 'gowthameswar88@gmail.com',
+                mimeType: 'text/html',
                 attachmentsPattern: 'trivy-fs-report.txt'
             )
         }
     }
+
 }
