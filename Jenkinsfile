@@ -166,27 +166,15 @@ pipeline {
     }
 
     post {
-        success {
+        always {
+            // Email sent for every build (success, failure, unstable, aborted)
             emailext(
                 attachLog: true,
-                subject: "SUCCESS: ${env.JOB_NAME}",
-                body: """Build SUCCESS 🎯<br/>
-                         Project: ${env.JOB_NAME}<br/>
-                         Build Number: ${env.BUILD_NUMBER}<br/>
-                         URL: ${env.BUILD_URL}<br/>""",
-                to: 'gowthameswar88@gmail.com',
-                attachmentsPattern: 'trivy-fs-report.txt'
-            )
-        }
-
-        failure {
-            emailext(
-                attachLog: true,
-                subject: "FAILED: ${env.JOB_NAME}",
-                body: """Build FAILED ❌<br/>
-                         Project: ${env.JOB_NAME}<br/>
-                         Build Number: ${env.BUILD_NUMBER}<br/>
-                         Check Logs: ${env.BUILD_URL}""",
+                subject: "BUILD STATUS: ${currentBuild.currentResult} - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """<b>Project:</b> ${env.JOB_NAME}<br/>
+                         <b>Build Number:</b> ${env.BUILD_NUMBER}<br/>
+                         <b>Status:</b> ${currentBuild.currentResult}<br/>
+                         <b>URL:</b> ${env.BUILD_URL}""",
                 to: 'gowthameswar88@gmail.com',
                 attachmentsPattern: 'trivy-fs-report.txt'
             )
