@@ -8,7 +8,7 @@ pipeline {
 
     environment {
         SCANNER_HOME = tool 'sonar-scanner'
-        EKS_CLUSTER_NAME = 'BookMyShow-eks'
+        EKS_CLUSTER_NAME = 'bms-cluster'
         AWS_REGION = 'ap-south-1'
     }
 
