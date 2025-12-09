@@ -22,9 +22,17 @@ pipeline {
     
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'git@github.com:gowthamgandhari/bookmyshow.git', credentialsId: 'bms-key'
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: 'main']], 
+                    userRemoteConfigs: [[
+                        url: 'git@github.com:gowthamgandhari/bookmyshow.git',
+                        credentialsId: 'bms-key'
+                    ]]
+                ])
             }
         }
+
 
         stage('SonarQube Analysis') {
             steps {
