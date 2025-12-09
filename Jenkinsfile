@@ -162,7 +162,7 @@ pipeline {
                 withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
                     dir('Terraform-Code-for-EKS-Cluster/terraform') {
                         sh """
-                            terraform init 
+                            terraform init -upgrade 
                             terraform fmt
                             terraform validate
                             terraform apply -auto-approve
