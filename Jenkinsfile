@@ -23,6 +23,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/gowthamgandhari/bookmyshow.git'
+                credentialsId: 'bms-key'
             }
         }
 
