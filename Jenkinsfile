@@ -178,14 +178,33 @@ pipeline {
     }
 
     post {
-        always {
+        success {
             emailext(
                 attachLog: true,
-                subject: "BUILD STATUS: ${currentBuild.currentResult} - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: """<b>Project:</b> ${env.JOB_NAME}<br/>
-                         <b>Build Number:</b> ${env.BUILD_NUMBER}<br/>
-                         <b>Status:</b> ${currentBuild.currentResult}<br/>
-                         <b>URL:</b> ${env.BUILD_URL}""",
+                subject: "SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: "Build SUCCESSFUL. URL: ${env.BUILD_URL}",
+                to: 'gowthameswar88@gmail.com',
+                replyTo: 'gowthameswar88@gmail.com',
+                mimeType: 'text/html',
+                attachmentsPattern: 'trivy-fs-report.txt'
+            )
+        }
+        failure {
+            emailext(
+                attachLog: true,
+                subject: "FAILURE: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: "Build FAILED. URL: ${env.BUILD_URL}",
+                to: 'gowthameswar88@gmail.com',
+                replyTo: 'gowthameswar88@gmail.com',
+                mimeType: 'text/html',
+                attachmentsPattern: 'trivy-fs-report.txt'
+            )
+        }
+        aborted {
+            emailext(
+                attachLog: true,
+                subject: "ABORTED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: "Build ABORTED. URL: ${env.BUILD_URL}",
                 to: 'gowthameswar88@gmail.com',
                 replyTo: 'gowthameswar88@gmail.com',
                 mimeType: 'text/html',
@@ -193,4 +212,8 @@ pipeline {
             )
         }
     }
+
 }
+
+
+
