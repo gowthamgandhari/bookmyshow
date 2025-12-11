@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bms-app
+  labels:
+    app: bms
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: bms
+  template:
+    metadata:
+      labels:
+        app: bms
+    spec:
+      containers:
+        - name: bms-container
+          image: gowthamcloud268/bms:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
