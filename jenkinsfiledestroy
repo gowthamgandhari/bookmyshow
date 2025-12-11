@@ -1,38 +1,66 @@
     ******************************NOTE FOR DELETION USE THIS GROOVY SCRIPT*******************************************************
 
 -------Instead of Manual deletion here i used parameters to --destroy resources via pipeline --------
+
 pipeline {
     agent any
 
-    tools {
-        jdk 'jdk21'
-        nodejs 'nodejs23'
+    parameters {
+        choice(
+            name: 'ACTION',
+            choices: ['NO', 'DESTROY'],
+            description: 'Select DESTROY to remove entire EKS infra'
+        )
     }
 
     environment {
-        SCANNER_HOME = tool 'sonar-scanner'
-        AWS_DEFAULT_REGION = 'ap-south-1'
-        action = "destroy"  // change back to 'apply' when needed
+        AWS_DEFAULT_REGION = "ap-south-1"
     }
 
     stages {
 
-        stage('Terraform EKS Destroy') {
-            when {
-                expression { currentBuild.currentResult == 'SUCCESS' }
-            }
+        stage('User Confirmation') {
             steps {
-                withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
-                    dir('BMS-Application/Terraform-Code-for-EKS-Cluster') {
-                        sh '''
-                            echo "Destroying EKS resources..."
-                            terraform init
-                            terraform destroy -auto-approve
-                        '''
+                script {
+                    if (params.ACTION != "DESTROY") {
+                        error("❌ Destroy not approved. Exiting pipeline.")
+                    } else {
+                        echo "✅ Destroy operation approved. Proceeding..."
                     }
                 }
             }
         }
 
+        stage('Terraform Destroy Init') {
+            steps {
+                withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
+                    dir('Terraform-Code-for-EKS-Cluster/terraform') {
+                        sh """
+                            echo 'Initializing Terraform backend...'
+                            terraform init -input=false
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Terraform Destroy') {
+            steps {
+                withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
+                    dir('Terraform-Code-for-EKS-Cluster/terraform') {
+                        sh """
+                            echo '🚨 Destroying all EKS Infra...'
+                            terraform destroy -auto-approve
+                        """
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "Terraform destroy pipeline completed: ${currentBuild.currentResult}"
+        }
     }
 }
