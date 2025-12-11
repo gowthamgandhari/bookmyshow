@@ -22,14 +22,7 @@ pipeline {
     
         stage('Checkout') {
             steps {
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: 'main']], 
-                    userRemoteConfigs: [[
-                        url: 'git@github.com:gowthamgandhari/bookmyshow.git',
-                        credentialsId: 'bms-key'
-                    ]]
-                ])
+                git branch: 'main', url: 'https://github.com/gowthamgandhari/bookmyshow.git'
             }
         }
 
