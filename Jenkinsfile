@@ -15,7 +15,7 @@ pipeline {
     stages {
 
     
-        stage('Checkout') {
+        stage('git Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/gowthamgandhari/bookmyshow.git'
             }
