@@ -26,7 +26,7 @@ pipeline {
             steps {
                 withSonarQubeEnv('sonar-server') {
                     sh """
-                        $SCANNER_HOME/bin/sonar-scanner \
+                        ${SCANNER_HOME}/bin/sonar-scanner \
                         -Dsonar.projectName=bookmyshow \
                         -Dsonar.projectKey=bookmyshow
                     """
@@ -166,8 +166,9 @@ pipeline {
                    withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
                        sh """
                            echo "Waiting for EKS cluster to become active..."
-                           aws eks wait cluster-active --name $EKS_CLUSTER_NAME
-                           aws eks update-kubeconfig --region $AWS_REGION --name $EKS_CLUSTER_NAME
+                           aws eks wait cluster-active --region ${AWS_REGION} --name ${EKS_CLUSTER_NAME}
+                           aws eks update-kubeconfig --region ${AWS_REGION} --name ${EKS_CLUSTER_NAME}
+                           export KUBECONFIG=/var/lib/jenkins/.kube/config
                            kubectl apply -f deployment.yml
                            kubectl apply -f service.yml
                        """
