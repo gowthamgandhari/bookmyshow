@@ -169,8 +169,8 @@ pipeline {
                            aws eks wait cluster-active --region ${AWS_REGION} --name ${EKS_CLUSTER_NAME}
                            aws eks update-kubeconfig --region ${AWS_REGION} --name ${EKS_CLUSTER_NAME}
                            export KUBECONFIG=/var/lib/jenkins/.kube/config
-                           kubectl apply -f deployment.yml
-                           kubectl apply -f service.yml
+                           kubectl apply -f deployment.yml  --validate=false
+                           kubectl apply -f service.yml  --validate=false
                        """
                     }
                 }
