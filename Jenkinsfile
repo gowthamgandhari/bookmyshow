@@ -14,13 +14,11 @@ pipeline {
 
     stages {
 
-    
         stage('git Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/gowthamgandhari/bookmyshow.git'
             }
         }
-
 
         stage('SonarQube Analysis') {
             steps {
@@ -41,7 +39,7 @@ pipeline {
                 }
             }
         }
-
+        
         stage('Install Dependencies') {
             steps {
                 sh """
