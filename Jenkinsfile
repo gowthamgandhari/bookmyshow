@@ -161,21 +161,28 @@ pipeline {
         }
 
         stage('Deploy to EKS') {
-           steps {
-               dir('Terraform-Code-for-EKS-Cluster/terraform') {
-                   withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
-                       sh """
-                           echo "Waiting for EKS cluster to become active..."
-                           aws eks wait cluster-active --region ${AWS_REGION} --name ${EKS_CLUSTER_NAME}
-                           aws eks update-kubeconfig --region ${AWS_REGION} --name ${EKS_CLUSTER_NAME}
-                           export KUBECONFIG=/var/lib/jenkins/.kube/config
-                           kubectl apply -f deployment.yml  --validate=false
-                           kubectl apply -f service.yml  --validate=false
-                       """
+            steps {
+                dir('Terraform-Code-for-EKS-Cluster/terraform') {
+                    withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
+        
+                        // Wait for the EKS cluster to be active
+                        sh 'echo "Waiting for EKS cluster to become active..."'
+                        sh "aws eks wait cluster-active --region ${AWS_REGION} --name ${EKS_CLUSTER_NAME}"
+        
+                        // Update kubeconfig
+                        sh "aws eks update-kubeconfig --region ${AWS_REGION} --name ${EKS_CLUSTER_NAME}"
+        
+                        // Apply manifests using the correct kubeconfig
+                        withEnv(["KUBECONFIG=/var/lib/jenkins/.kube/config"]) {
+                            sh "kubectl apply -f deployment.yml"
+                            sh "kubectl apply -f service.yml"
+                        }
+        
                     }
                 }
             }
         }
+
     }
 
     post {
