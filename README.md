@@ -234,8 +234,8 @@ Before pasting the pipeline script, do the following changes in the script
 1. In the stage 'Tag and Push to DockerHub', give your docker-hub username. Similar thing you should do in 'Deploy to container' stage.
 2. In post actions stage in pipeline, make sure to give the email id you have configured in jenkins.  
 
-******************************************* PIPELINE CODE ****************************************************
-                You can see the Jenkinsfile in this repo fr pipeline-as-Code....
+          ******************************************* PIPELINE CODE ****************************************************
+                                You can see the Jenkinsfile in this repo fr pipeline-as-Code....
 
 THANK YOU......
 
