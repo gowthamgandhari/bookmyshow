@@ -45,13 +45,12 @@ pipeline {
                 sh """
                     set -e
                     cd bookmyshow-app
-                    ls -la
                     if [ -f package.json ]; then
                         echo "Cleaning old dependencies..."
                         rm -rf node_modules package-lock.json
                         npm cache clean --force
                         echo "Installing fresh dependencies..."
-                        npm install
+                        npm install --legacy-peer-deps
                     else
                         echo "Error: package.json not found in bookmyshow-app!"
                         exit 1
@@ -59,7 +58,7 @@ pipeline {
                 """
             }
         }
-
+        
         stage('Trivy FS Scan') {
             steps {
                 sh 'trivy fs . > trivy-fs-report.txt'
