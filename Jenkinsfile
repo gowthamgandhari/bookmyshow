@@ -184,19 +184,26 @@ pipeline {
     }
 
     post {
-        always {
+    always {
+        script {
             emailext(
                 attachLog: true,
-                subject: "BUILD STATUS: ${currentBuild.currentResult} - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: """<b>Project:</b> ${env.JOB_NAME}<br/>
-                         <b>Build Number:</b> ${env.BUILD_NUMBER}<br/>
-                         <b>Status:</b> ${currentBuild.currentResult}<br/>
-                         <b>URL:</b> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a>""",
+                subject: "BUILD ${currentBuild.currentResult}: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+                <html>
+                <body>
+                    <p><b>Job:</b> ${env.JOB_NAME}</p>
+                    <p><b>Build Number:</b> ${env.BUILD_NUMBER}</p>
+                    <p><b>Status:</b> ${currentBuild.currentResult}</p>
+                    <p><b>Build URL:</b> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                </body>
+                </html>
+                """,
                 to: 'gowthameswar88@gmail.com',
-                replyTo: 'gowthameswar88@gmail.com',
-                mimeType: 'text/html',
-                attachmentsPattern: 'trivy-fs-report.txt'
+                from: 'jenkins@localhost',
+                mimeType: 'text/html'
             )
         }
     }
+}
 }
