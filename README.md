@@ -76,7 +76,11 @@ Attach the below inline policy also for the same user
 }  
           
 
-create a file called vi resource.sh ----> Paste the below content(SCRIPT) ---->and Installation of Required Tools  
+create   
+ -file called vi resource.sh ----> Paste the below content(SCRIPT)    
+ -give execute permisions :  sudo chmod +x resource.sh    
+ -run the script          :   ./resource.sh  
+---> Then Installation of Required Tools will done    
 
 1.2 Tools Installation OF TOOLS jdk,jenkins,k8s,trivy,docker,terraform,awscli,  
 
