@@ -5,62 +5,72 @@
 pipeline {
     agent any
 
-    parameters {
-        choice(
-            name: 'ACTION',
-            choices: ['NO', 'DESTROY'],
-            description: 'Select DESTROY to remove entire EKS infra'
-        )
-    }
-
     environment {
-        AWS_DEFAULT_REGION = "ap-south-1"
+        AWS_REGION      = 'ap-south-1'
+        TF_STATE_BUCKET = 'bms-tf-state-bucket'
+        TF_LOCK_TABLE   = 'bms-tf-lock'
+        ACTION          = 'destroy' 
     }
 
     stages {
 
-        stage('User Confirmation') {
+        stage('Terraform Destroy EKS Infra') {
             steps {
-                script {
-                    if (params.ACTION != "DESTROY") {
-                        error("❌ Destroy not approved. Exiting pipeline.")
-                    } else {
-                        echo "✅ Destroy operation approved. Proceeding..."
-                    }
-                }
-            }
-        }
-
-        stage('Terraform Destroy Init') {
-            steps {
-                withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
+                withAWS(credentials: 'aws-creds', region: "${AWS_REGION}") {
                     dir('Terraform-Code-for-EKS-Cluster/terraform') {
-                        sh """
-                            echo 'Initializing Terraform backend...'
+                        sh '''
+                            echo "🚨 Destroying Terraform-managed infrastructure..."
                             terraform init -input=false
-                        """
+                            terraform destroy -auto-approve
+                        '''
                     }
                 }
             }
         }
 
-        stage('Terraform Destroy') {
+        stage('Delete S3 Backend Bucket') {
             steps {
-                withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
-                    dir('Terraform-Code-for-EKS-Cluster/terraform') {
-                        sh """
-                            echo '🚨 Destroying all EKS Infra...'
-                            terraform destroy -auto-approve
-                        """
-                    }
+                withAWS(credentials: 'aws-creds', region: "${AWS_REGION}") {
+                    sh '''
+                        if aws s3api head-bucket --bucket ${TF_STATE_BUCKET} 2>/dev/null; then
+                            echo "🧹 Deleting S3 bucket: ${TF_STATE_BUCKET}"
+                            aws s3 rm s3://${TF_STATE_BUCKET} --recursive
+                            aws s3api delete-bucket --bucket ${TF_STATE_BUCKET} --region ${AWS_REGION}
+                        else
+                            echo "ℹ️ S3 bucket does not exist. Skipping."
+                        fi
+                    '''
                 }
             }
         }
+
+        stage('Delete DynamoDB Lock Table') {
+            steps {
+                withAWS(credentials: 'aws-creds', region: "${AWS_REGION}") {
+                    sh '''
+                        if aws dynamodb describe-table --table-name ${TF_LOCK_TABLE} 2>/dev/null; then
+                            echo "🧹 Deleting DynamoDB table: ${TF_LOCK_TABLE}"
+                            aws dynamodb delete-table --table-name ${TF_LOCK_TABLE}
+                            aws dynamodb wait table-not-exists --table-name ${TF_LOCK_TABLE}
+                        else
+                            echo "ℹ️ DynamoDB table does not exist. Skipping."
+                        fi
+                    '''
+                }
+            }
+        }
+
     }
 
     post {
+        success {
+            echo '✅ FULL INFRA DESTROY COMPLETED SUCCESSFULLY'
+        }
+        failure {
+            echo '❌ DESTROY PIPELINE FAILED — CHECK LOGS'
+        }
         always {
-            echo "Terraform destroy pipeline completed: ${currentBuild.currentResult}"
+            echo "Destroy pipeline finished with status: ${currentBuild.currentResult}"
         }
     }
 }
