@@ -9,10 +9,23 @@ pipeline {
         AWS_REGION      = 'ap-south-1'
         TF_STATE_BUCKET = 'bms-tf-state-bucket'
         TF_LOCK_TABLE   = 'bms-tf-lock'
-        ACTION          = 'destroy' 
+        ACTION          = 'destroy'
     }
 
     stages {
+
+        stage('Update Code from Remote') {
+            steps {
+                dir('Terraform-Code-for-EKS-Cluster/terraform') {
+                    sh '''
+                        echo "📦 Updating local workspace with latest code from remote..."
+                        git fetch --all
+                        git reset --hard origin/main
+                        git clean -fd
+                    '''
+                }
+            }
+        }
 
         stage('Terraform Destroy EKS Infra') {
             steps {
